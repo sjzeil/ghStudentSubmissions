@@ -10,6 +10,64 @@ import pprint as pp
 import re
 import sys
 
+from github import Github, Auth
+    
+
+def readAccessID(githubAccessIDFile: str) -> str:
+    with open(githubAccessIDFile, 'r') as f:
+        return f.read().strip()
+
+def checkTemplateRepo(templateRepo: str, accessID: str):
+    github = Github(auth=Auth.Token(accessID))
+    try:
+        repo = github.get_repo(templateRepo)
+    except Exception as e:
+        print(f"Error accessing template repo {templateRepo}: {e}")
+        logging.error(f"Error accessing template repo {templateRepo}: {e}")
+        sys.exit(1)
+
+def checkStudentAccountName(studentAccountName: str, accessID: str):
+    github = Github(auth=Auth.Token(accessID))
+    try:
+        user = github.get_user(studentAccountName)
+    except Exception as e:
+        print(f"Error: apparently invalid student account name {studentAccountName}: {e}")
+        logging.error(f"Error: apparently invalid student account name {studentAccountName}: {e}")
+        sys.exit(1)
+
+def repoAlreadyExists(organization, repoName: str) -> bool:
+    try:
+        organization.get_repo(repoName)
+        return True
+    except Exception:
+        return False
+
+def createStudentRepo(templateRepoName: str, studentGithubAccount: str, accessID: str) -> str:
+    github = Github(auth=Auth.Token(accessID))
+    try:
+        template = github.get_repo(templateRepoName)
+        repoNameParts = templateRepoName.split('/')
+        if len(repoNameParts) != 2:
+            return (f"Error: Invalid template repo format: {templateRepoName}. Expected format: organization-name/repoName")
+        organizationName, baseName = repoNameParts
+        studentRepoName = f"{baseName}-{studentGithubAccount}"
+        organization = github.get_organization(organizationName)
+        if repoAlreadyExists(organization, studentRepoName):
+            return f"Repository https://github.com/{organizationName}/{studentRepoName} already exists."
+        templateRepo = organization.get_repo(repoNameParts[1])
+        studentRepo = organization.create_repo_from_template(
+            name=studentRepoName,
+            repo=templateRepo,
+            description=f"Created from template {templateRepoName}",
+            private=True,
+            include_all_branches=False,
+        )
+        # Now add the student as a collaborator to the new repo
+        studentRepo.add_to_collaborators(studentGithubAccount, permission='push')
+
+        return f"New repository created at https://github.com/{organizationName}/{studentRepoName}"
+    except Exception as e:
+        return f"Error creating student repo for {studentGithubAccount}: {e}"
 
 def parse_cli(args: list[str]):
     global replacing, summarize, gradedActivities, reviewActivities, assignmentActivities, generateSyllabus
@@ -39,6 +97,7 @@ def main():
     
     accessID: str = readAccessID(args.githubAccessID)
     checkTemplateRepo(args.templateRepo, accessID)
+    checkStudentAccountName(args.studentGithubAccount, accessID)
     msg: str = createStudentRepo(args.templateRepo, args.studentGithubAccount, accessID)
     print(msg)
 
