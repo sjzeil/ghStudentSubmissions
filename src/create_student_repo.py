@@ -1,5 +1,5 @@
 """
-Usage create_student_repo GitHubIDFile templateRepository studentGitHubAccount 
+Usage create_student_repo GitHubAccessIDFile course assignment csStudent 
 
 """
 
@@ -42,7 +42,7 @@ def repoAlreadyExists(organization, repoName: str) -> bool:
     except Exception:
         return False
 
-def createStudentRepo(templateRepoName: str, studentGithubAccount: str, accessID: str) -> str:
+def createStudentRepo(accessID: str, coursePath: str, asstName: str, studentLogin: str, ) -> str:
     github = Github(auth=Auth.Token(accessID))
     try:
         template = github.get_repo(templateRepoName)
