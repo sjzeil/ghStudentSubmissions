@@ -33,14 +33,16 @@ class ghCourse:
     repositories: list[Repository]
 
 
-    def __init__(self, accessID: str, path: str):
-        self.accessID = accessID
+    def __init__(self, path: str):
         self.path = path
         self.student2GHLogin = {}
         self.ghLogin2Student = {}
         self.repositories = []
 
-        if not Path.is_dir(path):
+        accessIDPath = f"{path}/.github"
+        self.accessId = self._readAccessID(accessIDPath)
+
+        if not Path.is_dir(Path(path)):
             raise FileNotFoundError(f"The directory {path} does not exist.")
         
         if Path.is_file(f"{path}/students.csv"):
@@ -66,3 +68,7 @@ class ghCourse:
                         repo.grade = int(row['Grade'])
                     if row['Graded'] != None and row['Graded'] != '':
                         repo.graded = dt.fromisoformat(row['Graded']).astimezone()
+
+    def _readAccessID(self, githubAccessIDFile: str) -> str:
+        with open(githubAccessIDFile, 'r') as f:
+            return f.read().strip()

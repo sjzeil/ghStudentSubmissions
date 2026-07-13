@@ -1,3 +1,6 @@
+tests/data/course1/.canvas
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
