@@ -22,9 +22,24 @@ def setup():
 def test_ghCourse_constructor():
     setup()
     
-    course = ghCourse('tests/data/course1/')
+    course = ghCourse(testCourse)
     assert course.accessID != None and course.accessID != ''
-    assert course.student2GHLogin['zeil'] == 'sjzeil'
-    assert course.ghLogin2Student['sjzeil'] == 'zeil'
+    assert course.student2GHLogin['zeil'] == 'szeil'
+    assert course.ghLogin2Student['szeil'] == 'zeil'
     assert course.asst2Template['asst1'] == 'Fall26-test/test1'
+    assert course.repositories[0].assignmentName == 'asst2'
     
+def test_ghCourse_save():
+    setup()
+
+    course0 = ghCourse(testCourse)
+    course0.asst2Template['lab1'] = 'organization/repo'
+    course0.student2GHLogin['jdoe'] = 'jdoe2026'
+    course0.save()
+    
+    course = ghCourse(testCourse)
+    assert course.accessID != None and course.accessID != ''
+    assert course.student2GHLogin['zeil'] == 'szeil'
+    assert course.student2GHLogin['jdoe'] == 'jdoe2026'
+    assert course.ghLogin2Student['szeil'] == 'zeil'
+    assert course.asst2Template['lab1'] == 'organization/repo'

@@ -44,7 +44,7 @@ This area may also wind up containing clones of the student repositories.
 
 1. Create a directory you want to use for this purpose. This should be accessible from, but not directly served by your web server.
 2. Copy the `*.py` files from `src/` into this directory.
-2. In that directory, create a file named `.canvas` with your favorite editor.
+2. In that directory, create a file named `.github` with your favorite editor.
 3. In a web browser, visit GitHub.  Click on your icon/picture in the upper right.
 
     Click Settings, then Developer Settings
@@ -60,7 +60,7 @@ This area may also wind up containing clones of the student repositories.
         * Contents (automatically adds Metadata) --- Set Access to "Read-only"
 
 
-    Click 'Generate token`.     _Immediately_ copy and paste the token into the `.canvas` file you created in step 2. Save that.
+    Click 'Generate token`.     _Immediately_ copy and paste the token into the `.github` file you created in step 2. Save that.
 
 ### Set up the web pages
 
