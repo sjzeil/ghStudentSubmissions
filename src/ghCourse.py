@@ -76,8 +76,22 @@ class ghCourse:
             fieldNames = [f.name for f in fields(Student)]
             writer = csv.DictWriter(file, fieldnames=fieldNames)
             writer.writeheader()
-            for student in self.studentsByName.values():
-                row = asdict(student)
+            for repo in self.studentsByName.values():
+                row = asdict(repo)
                 writer.writerow(row)
             
-            
+        with open(f"{self.path}/assignments.csv", mode='w', encoding='utf-8') as file:
+            fieldNames = [f.name for f in fields(Assignment)]
+            writer = csv.DictWriter(file, fieldnames=fieldNames)
+            writer.writeheader()
+            for repo in self.assignmentsByName.values():
+                row = asdict(repo)
+                writer.writerow(row)
+
+        with open(f"{self.path}/repositories.csv", mode='w', encoding='utf-8') as file:
+            fieldNames = [f.name for f in fields(Repository)]
+            writer = csv.DictWriter(file, fieldnames=fieldNames)
+            writer.writeheader()
+            for repo in self.repositories:
+                row = asdict(repo)
+                writer.writerow(row)
