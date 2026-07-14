@@ -1,5 +1,5 @@
 tests/data/course1/.github
-
+.gradle/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

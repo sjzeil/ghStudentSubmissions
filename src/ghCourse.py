@@ -1,42 +1,41 @@
 import csv
+from dataclasses import dataclass, fields, asdict
 import datetime as dt
 from pathlib import Path
 
+@dataclass
 class Repository:
-    assignmentName: str
+    assignment: str
     student: str
-    repoName: str
+    repo: str
     created: dt.datetime
 
-    def __init__(self, assignment: str, student: str, repoName: str, created: dt.datetime | None = None): 
-        self.assignmentName = assignment
-        self.student = student
-        self.repoName = repoName
+@dataclass
+class Student:
+    local_name: str
+    github_name: str
 
-        if created != None:
-            self.created = created.astimezone()
-        else:
-            self.created = dt.datetime.now().astimezone()
+@dataclass
+class Assignment:
+    name: str
+    template_repo: str
+    permissions: str = 'push'
+    teams: str = '' # individual assignment, not for teams
 
-        
 class ghCourse:
 
     path: str
     accessID: str
-    student2GHLogin: dict[str, str]
-    ghLogin2Student: dict[str, str]
-    asst2Template: dict[str, str]
+    studentsByName: dict[str, Student]
+    assignmentsByName: dict[str, Assignment]
     repositories: list[Repository]
 
-    studentsFieldNames = ['CS Login', 'Github Login']
-    templatesFieldNames = ['Assignment Name', 'Github Template']
-    repositoriesFieldNames = ['Assignment', 'CS Login', 'Repository', 'Created']
 
     def __init__(self, path: str):
         self.path = path
-        self.student2GHLogin = {}
+        self.studentsByName = {}
         self.ghLogin2Student = {}
-        self.asst2Template = {}
+        self.assignmentsByName = {}
         self.repositories = []
 
         accessIDPath = f"{path}/.github"
@@ -49,21 +48,23 @@ class ghCourse:
             with open(f"{path}/students.csv", mode='r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    self.student2GHLogin[row['CS Login']] = row['Github Login']
-                    self.ghLogin2Student[row['Github Login']] = row['CS Login']
+                    student = Student(**row)
+                    self.studentsByName[row['local_name']] = student
 
-        if Path.is_file(Path(f"{path}/templates.csv")):
-            with open(f"{path}/templates.csv", mode='r', encoding='utf-8') as file:
+        if Path.is_file(Path(f"{path}/assignments.csv")):
+            with open(f"{path}/assignments.csv", mode='r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    self.asst2Template[row['Assignment Name']] = row['Github Template']
+                    asst = Assignment(**row)
+                    self.assignmentsByName[row['name']] = asst
 
         if Path.is_file(Path(f"{path}/repositories.csv")):
             with open(f"{path}/repositories.csv", mode='r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    createdDate = dt.datetime.fromisoformat(row['Created']).astimezone()
-                    repo = Repository(row['Assignment'], row['CS Login'], row['Repository'], createdDate)
+                    createdDate = dt.datetime.fromisoformat(row['created']).astimezone()
+                    row['created'] = createdDate
+                    repo = Repository(**row)
                     self.repositories.append(repo)
 
     def _readAccessID(self, githubAccessIDFile: str) -> str:
@@ -72,10 +73,11 @@ class ghCourse:
 
     def save(self):
         with open(f"{self.path}/students.csv", mode='w', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            writer.writerow(ghCourse.studentsFieldNames)
-            for student, ghLogin in self.student2GHLogin:
-                row = [student, ghLogin]
+            fieldNames = [f.name for f in fields(Student)]
+            writer = csv.DictWriter(file, fieldnames=fieldNames)
+            writer.writeheader()
+            for student in self.studentsByName.values():
+                row = asdict(student)
                 writer.writerow(row)
             
             

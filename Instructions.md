@@ -80,7 +80,7 @@ This area may also wind up containing clones of the student repositories.
     2. Use the New repository" button to create a new repo for the starting code. 
     3. On the repo's page, click `Settings`, then place a checkmark in the "template repository" box.
     4. Add the starting files to the repository.
-2. In the course information area, add your assignment to `templates.csv`.  The format is: _your_assignment_name,template_repo_name_.  For example, if your "Assignment 1" has its template repo in `ODU_CS361_Fall26/Asst1", add a line:
+2. In the course information area, add your assignment to `assignments.csv`.  The format is: _your_assignment_name,template_repo_name_.  For example, if your "Assignment 1" has its template repo in `ODU_CS361_Fall26/Asst1", add a line:
 
          Assignment 1,ODU_CS361_Fall26/Asst1
 
