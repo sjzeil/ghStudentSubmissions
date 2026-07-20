@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #
 import csv
+import datetime as dt
 import logging
 import os
 import random
@@ -8,7 +9,8 @@ from pathlib import Path
 import pytest
 import shutil
 
-from ghCourse import ghCourse, Assignment
+from ghCourse import ghCourse, Assignment, Repository
+from create_student_repo import create_student_repo
 
 testCourse = 'build/testCourse'  
 
@@ -28,26 +30,24 @@ def test_CSR():
     newAsstName = 'asst' + str(random.randint(2, 10000))
 
     course.assignmentsByName[newAsstName] = Assignment(newAsstName, templateRepo)
-
-    msg = course.createStudentRepo(newAsstName, 'zeil')
-    
-    assert not ('Error' in msg)
-    expectedRepoName = f"Fall26-test/{newAsstName}--szeil"
-    assert expectedRepoName in msg
-
     course.save()
 
-    with open(f"{testCourse}/repositories.csv", mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-
-        recordedNewRepo = False
-        for row in reader:
-            print(row)
-            if (row['assignment'] == newAsstName and
-                row['student'] == 'zeil' and
-                row['repo'] == expectedRepoName and
-                row['created'].startswith('202')):
-                recordedNewRepo = True
-        assert recordedNewRepo
+    OK: bool = create_student_repo(course, newAsstName, 'zeil')
+    
+    assert OK
+    
+    expectedRepoName = f"Fall26-test/{newAsstName}--szeil"
+    
+    
+    course2 = ghCourse(testCourse)
+    
+    recordedNewRepo = False
+    for row in course2.repositories:
+        if (row.assignment == newAsstName and
+            row.student == 'zeil' and
+            row.repo == expectedRepoName and
+            row.created.year == dt.datetime.now().year):
+            recordedNewRepo = True
+    assert recordedNewRepo
 
     course.deleteRepository(newAsstName, 'zeil')

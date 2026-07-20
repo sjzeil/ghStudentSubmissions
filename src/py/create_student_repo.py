@@ -20,7 +20,7 @@ def parse_cli(args: list[str]):
         # prog="upload_modules",
         description="Create a student repo as a copy of an instructor-supplied template"
     )
-    parser.add_argument('coursePath', type=str, help='path to course direcctory')
+    parser.add_argument('coursePath', type=str, help='path to course directory')
     parser.add_argument('assignmentName', type=str, help='name of an assignment')
     parser.add_argument('student', type=str, help='name of student to create repo for')
 
@@ -28,6 +28,18 @@ def parse_cli(args: list[str]):
     
     return parsedArgs
 
+def create_student_repo(course: ghCourse, assignmentName: str, studentName: str) -> bool:
+    if not course.checkAssignment(assignmentName):
+        return False
+    if not course.checkStudent(studentName):
+        return False
+    msg: str = course.createStudentRepo(assignmentName, studentName)
+    print(msg)
+
+    if not ('Error' in msg):
+        course.save()
+    return True
+    
 
 def main():
     logging.basicConfig(level=logging.INFO)
@@ -36,16 +48,9 @@ def main():
     args = parse_cli(sys.argv)    
     
     course = ghCourse(args.coursePath)
-    if not course.checkAssignment(args.assignmentName):
+    OK = create_student_repo(course, args.assignmentName, args.student)
+    if not OK:
         sys.exit(1)
-    if not course.checkStudent(args.student):
-        sys.exit(1)
-    msg: str = course.createStudentRepo(args.assignmentName, args.student)
-    print(msg)
-
-    if not ('Error' in msg):
-        course.save()
-
 
 
 if __name__ == "__main__":

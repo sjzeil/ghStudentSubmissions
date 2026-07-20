@@ -161,7 +161,9 @@ class ghCourse:
             return False
         github = Github(auth=Auth.Token(self.accessID))
         try:
-            repo = github.get_repo(repository.name)
+            organizationName, baseName = repository.template_repo.split('/')
+            organization = github.get_organization(organizationName)
+            repo = organization.get_repo(baseName)
         except Exception as e:
             logging.error(f"Error accessing template repo {repository.name} for assignment {name}: {e}")
             return False
