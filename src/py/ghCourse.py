@@ -72,8 +72,11 @@ class ghCourse:
                     self.repositories.append(repo)
 
     def _readAccessID(self, githubAccessIDFile: str) -> str:
-        with open(githubAccessIDFile, 'r') as f:
-            return f.read().strip()
+        try:
+            with open(githubAccessIDFile, 'r') as f:
+                return f.read().strip()
+        except:
+            raise FileNotFoundError(f"Could not read Github access ID from {githubAccessIDFile}. Please ensure the file exists and contains a valid access token.")
 
     def save(self):
         with open(f"{self.path}/students.csv", mode='w', encoding='utf-8') as file:

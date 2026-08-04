@@ -33,21 +33,24 @@ def parse_cli(args: list[str]):
     return parsedArgs
 
 def student_has_pushed_anything(course: ghCourse, repoName: str) -> bool:
-    g = Github(course.accessID)
+    g = Github(auth=Auth.Token(course.accessID))
     try:
         repo = g.get_repo(repoName)
         commits = repo.get_commits()
         return commits.totalCount > 1
-    except:
-        logging.error(f"Error checking if student has pushed anything for repo {repoName}")
-        return False
+    except Exception as e:
+        if 'Bad credentials' in str(e):
+            organization = repoName.split('/')[0]
+            logging.error(f"Error checking {repoName}: Bad credentials. Your Github access token may be invalid (for the GitHub organization {organization}) or expired.")
+        else:
+            logging.error(f"Error checking if student has pushed anything for repo {repoName}: {e}")
+        return True  # If we can't access the repo via Github REST API, try to pull it anyway in case they have pushed.
 
 def clone_repo(course: ghCourse, assignmentName: str, studentName: str, repoName: str, repoPath: str) -> bool:
-    g = Github(course.accessID)
-    repo = g.get_repo(repoName)
+    ssh_url = f"git@github.com:{repoName}.git"
     status = True
     try:
-        command = ['git', 'clone', repo.ssh_url, repoPath]
+        command = ['git', 'clone', ssh_url, repoPath]
         result = subprocess.run(command, capture_output=True, text=True)
         if result.returncode != 0:
             logging.error(f"Error cloning repo {repoName} for student {studentName}: {result.stderr}")
@@ -64,16 +67,24 @@ def get_last_commit_from_local_repo(repoPath) -> str:
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
         logging.error(f"Error getting last commit from local repo at {repoPath}: {result.stderr}")
-        return ''
+        return 'should-not-match-anything'
     return result.stdout.strip()
 
 def get_last_commit_from_github_repo(course: ghCourse, repoName: str) -> str:
-    g = Github(course.accessID)
-    repo = g.get_repo(repoName)
-    commits = repo.get_commits()
-    if commits.totalCount == 0:
-        return ''
-    return commits[0].sha
+    try:
+        g = Github(auth=Auth.Token(course.accessID))
+        repo = g.get_repo(repoName)
+        commits = repo.get_commits()
+        if commits.totalCount == 0:
+            return 'should_not_match_anything'
+        return commits[0].sha
+    except Exception as e:
+        if 'Bad credentials' in str(e):
+            organization = repoName.split('/')[0]
+            logging.error(f"Error getting last commit from Github repo {repoName}: Bad credentials. Your Github access token may be invalid (for the GitHub organization {organization}) or expired.")
+        else:
+            logging.error(f"Error getting last commit from Github repo {repoName}: {e}")
+        return 'should_not_match_anything'
 
 def pull_repo(studentName: str, repoPath: str) -> bool:
     status = True
