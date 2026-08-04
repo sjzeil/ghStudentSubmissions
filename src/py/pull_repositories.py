@@ -12,8 +12,8 @@ import subprocess
 import sys
 import time
 
-from github import Github, Auth
 from ghCourse import ghCourse
+from GithubRepo import GithubRepo
     
 SLEEP_AFTER_FETCH_OR_CLONE = 2
 
@@ -33,11 +33,10 @@ def parse_cli(args: list[str]):
     return parsedArgs
 
 def student_has_pushed_anything(course: ghCourse, repoName: str) -> bool:
-    g = Github(auth=Auth.Token(course.accessID))
+    g = GithubRepo(course.accessID, repoName)
     try:
-        repo = g.get_repo(repoName)
-        commits = repo.get_commits()
-        return commits.totalCount > 1
+        nCommits = g.numberOfCommits()
+        return nCommits > 1
     except Exception as e:
         if 'Bad credentials' in str(e):
             organization = repoName.split('/')[0]
@@ -72,12 +71,8 @@ def get_last_commit_from_local_repo(repoPath) -> str:
 
 def get_last_commit_from_github_repo(course: ghCourse, repoName: str) -> str:
     try:
-        g = Github(auth=Auth.Token(course.accessID))
-        repo = g.get_repo(repoName)
-        commits = repo.get_commits()
-        if commits.totalCount == 0:
-            return 'should_not_match_anything'
-        return commits[0].sha
+        g = GithubRepo(course.accessID, repoName)
+        return g.lastCommit()
     except Exception as e:
         if 'Bad credentials' in str(e):
             organization = repoName.split('/')[0]
