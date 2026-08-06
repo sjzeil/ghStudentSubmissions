@@ -3,6 +3,7 @@ from dataclasses import dataclass, fields, asdict
 import datetime as dt
 import logging
 from pathlib import Path
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,33 @@ class ghCourse:
                 return f.read().strip()
         except:
             raise FileNotFoundError(f"Could not read Github access ID from {githubAccessIDFile}. Please ensure the file exists and contains a valid access token.")
+
+    def createTemplateRepo(self, organization: str, assignmentName: str) -> str:
+        if assignmentName in self.assignmentsByName:
+            return f"Error: Assignment {assignmentName} is already in the course."
+        
+        templateName = f"{assignmentName}--template"
+        url = f"https://api.github.com/orgs/{organization}/repos"
+        headers = {
+            "Accept": "application/vnd.github.baptiste-preview+json",
+            "Authorization": f"Bearer {self.accessID}",
+            "X-GitHub-Api-Version": "2022-11-28"
+        }
+        data = {
+            "name": templateName,
+            "description": f"Template repository for assignment {assignmentName}",
+            "private": True,
+            "is_template": True,
+            "auto_init": True
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 201:
+            new_assignment = Assignment(name=assignmentName, template_repo=f"{organization}/{templateName}")
+            self.assignmentsByName[assignmentName] = new_assignment
+            return f"Successfully created template repo {templateName} for assignment {assignmentName}."
+        else:
+            return f"Error creating template repo {templateName} for assignment {assignmentName}: {response.status_code} - {response.text}"
 
     def save(self):
         with open(f"{self.path}/students.csv", mode='w', encoding='utf-8') as file:

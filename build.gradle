@@ -11,15 +11,11 @@ task setupPythonVirtualEnv(type:Exec) {
         commandLine 'python3', '-m', 'venv', '.venv'
 }
 
-task installPyGithub(type: Exec, dependsOn: setupPythonVirtualEnv) {
-    commandLine vPython, '-m', 'pip', 'install', 'PyGithub'
-}
-
 task installPytest(type: Exec, dependsOn: setupPythonVirtualEnv) {
     commandLine vPython, '-m', 'pip', 'install', 'pytest'
 }
 
-task setupPython(dependsOn: [installPyGithub, installPytest]) {
+task setupPython(dependsOn: [installPytest]) {
 }
 
 task runTests(type: Exec, dependsOn: setupPython) {
