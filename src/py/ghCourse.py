@@ -78,11 +78,10 @@ class ghCourse:
         except:
             raise FileNotFoundError(f"Could not read Github access ID from {githubAccessIDFile}. Please ensure the file exists and contains a valid access token.")
 
-    def createTemplateRepo(self, organization: str, assignmentName: str) -> str:
+    def createTemplateRepo(self, organization: str, assignmentName: str, templateName: str) -> str:
         if assignmentName in self.assignmentsByName:
             return f"Error: Assignment {assignmentName} is already in the course."
         
-        templateName = f"{assignmentName}--template"
         url = f"https://api.github.com/orgs/{organization}/repos"
         headers = {
             "Accept": "application/vnd.github.baptiste-preview+json",
